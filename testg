@@ -1,0 +1,33 @@
+import sqlite3
+import telebot
+
+
+API_TOKEN = '5409234633:AAG0pzqAyB9JiR3J71eeTyhRS0--zzqPz8I'
+bot = telebot.TeleBot('5409234633:AAG0pzqAyB9JiR3J71eeTyhRS0--zzqPz8I')
+
+@bot.message_handler(commands=['start'])
+def start(message):
+    connect = sqlite3.connect('users.db')
+    cursor = connect.cursor()
+
+    cursor.execute("""CREATE TABLE IF NOT EXISTS login_id(
+        id INTEGER,
+        dlina INTEGER,
+        shirina INTEGER
+    )""")
+
+    connect.commit()
+
+    user_id = [message.chat.id]
+    cursor.execute("INSERT INTO login_id(id) VALUES(?);", user_id, )
+    connect.commit()
+
+@bot.message_handler(commands=['delete'])
+def delete(message):
+    pass
+
+
+
+
+
+bot.polling()

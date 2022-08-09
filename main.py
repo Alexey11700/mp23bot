@@ -1,23 +1,96 @@
+
+import sqlite3
 import telebot
 from telebot import types
 
 bot = telebot.TeleBot('5367324988:AAH-vbdXLimLjzt2r_QGpKTrpjr6AHhfZiA')
+mess_dlina = '<b>Ввведите пожалуйста длину рисунка в сантиметрах: пример "125"</b>'
+mess_shirina = '<b>Ввведите пожалуйста ширину рисунка в сантиметрах: \nпример "125"</b>'
+messno = '<b>Всего доброго! Если захотите сделать расчет, воспользуйтесь командой /start </b>'
+d1 = []
+d2 = []
+
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
-    calculation = types.KeyboardButton('Да')
-    markup.add(calculation)
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    bat1 = types.KeyboardButton('Да')
+    bat2 = types.KeyboardButton('Нет')
+    markup.add(bat1, bat2)
     mess = f'Здравствуйте <b>{message.from_user.first_name} {message.from_user.last_name}!\n</b>Вас приветствует компания <b>MagiсPrint23!</b>\nМы занимаемся интерьерной печатью и нанесением любых рисунков на любые поверхности. \nХотите расчитать стоимость вашего рисунка?'
     bot.send_message(message.chat.id, mess, parse_mode='html', reply_markup=markup)
 
-@bot.message_handler(commands=['calculation'])
+@bot.message_handler(content_types=['text'])
 def calculation(message):
-    dlina = '<b>Ввведите ширину рисунка</b>'
-    bot.send_message(message.chat.id, dlina, parse_mode='html')
+    if message.text.lower() == "да":
+        connect = sqlite3.connect('area.db')
+        cursor = connect.cursor()
+
+        cursor.execute("""CREATE TABLE IF NOT EXISTS area(
+                        dann INTEGER
+                    )""")
+
+        connect.commit()
+        bot.send_message(message.chat.id, mess_dlina, parse_mode='html')
+        bot.register_next_step_handler(message, get_length)
+
+    elif message.text.lower() == "нет":
+        bot.send_message(message.chat.id, messno, parse_mode='html')
+
+    else:
+        bot.send_message(message.chat.id, text="На такую комманду я не запрограммирован..")
+
+
+def get_length(message):
+
+    try:
+        connect = sqlite3.connect('area.db')
+        cursor = connect.cursor()
+
+        connect.commit()
+
+        length = message.text
+        d1.append(length)
+
+
+        if length.isdigit():
+            cursor.execute("INSERT INTO area(dann) VALUES(?);", d1, )
+            connect.commit()
+            bot.send_message(message.chat.id, mess_shirina, parse_mode='html')
+            bot.register_next_step_handler(message, get_width)
+        else:
+            bot.send_message(message.chat.id, 'Цифрами пожалуйста', parse_mode='html')
+            bot.register_next_step_handler(message, get_length)
+    except Exception:
+            bot.reply_to(message, 'Длина должна быть в сантиметрах')
+            bot.register_next_step_handler(message, get_length)
 
 
 
+
+
+def get_width(message,):
+
+    try:
+        connect = sqlite3.connect('area.db')
+        cursor = connect.cursor()
+
+        connect.commit()
+
+        width = message.text
+        d2.append(width)
+
+        if width.isdigit():
+            cursor.execute("INSERT INTO area(dann) VALUES(?);", d2, )
+
+            connect.commit()
+            bot.send_message(message.chat.id, 'Результат равен ',  parse_mode='html')
+        else:
+            bot.send_message(message.chat.id, 'Цифрами пожалуйста', parse_mode='html')
+            bot.register_next_step_handler(message, get_width)
+    except Exception:
+            bot.reply_to(message, 'Длина должна быть в сантиметрах')
+            bot.register_next_step_handler(message, get_width)
 
 
 bot.polling(none_stop=True)
