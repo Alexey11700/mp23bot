@@ -44,17 +44,13 @@ def calculation(message):
 def get_length(message):
 
     try:
-        connect = sqlite3.connect('area.db')
-        cursor = connect.cursor()
-
-        connect.commit()
-
         length = message.text
         d1.append(length)
 
-
         if length.isdigit():
-            cursor.execute("INSERT INTO area(dann) VALUES(?);", d1, )
+            connect = sqlite3.connect('area.db')
+            cursor = connect.cursor()
+            cursor.execute("INSERT INTO area(dann) VALUES(?);", d1)
             connect.commit()
             bot.send_message(message.chat.id, mess_shirina, parse_mode='html')
             bot.register_next_step_handler(message, get_width)
@@ -66,31 +62,31 @@ def get_length(message):
             bot.register_next_step_handler(message, get_length)
 
 
-
-
-
-def get_width(message,):
+def get_width(message):
 
     try:
-        connect = sqlite3.connect('area.db')
-        cursor = connect.cursor()
-
-        connect.commit()
-
         width = message.text
         d2.append(width)
 
         if width.isdigit():
+            connect = sqlite3.connect('area.db')
+            cursor = connect.cursor()
             cursor.execute("INSERT INTO area(dann) VALUES(?);", d2, )
-
             connect.commit()
-            bot.send_message(message.chat.id, 'Результат равен ',  parse_mode='html')
+
+            bot.send_message(message.chat.id, 'Ориентировочная цена вашего рисунка составляет ', parse_mode='html')
+
+            markup = types.InlineKeyboardMarkup(row_width=2)
+            bat1 = types.InlineKeyboardButton(text='ЗАЯВКА', url='https://magicprint23.ru/')
+            bat2 = types.InlineKeyboardButton(text='РАБОТЫ', url='http://www.instagram.com/magicprint23krd')
+            markup.add(bat1, bat2)
+            mess = f'Вау, цена очень даже привлекательная, согласны <b>{message.from_user.first_name} {message.from_user.last_name}?\n</b>Если хотите оставить заявку и обсудить детали с менеджером, то жмите "ЗАЯВКА".\nЕсли хотите посмотреть наши работы в instagram, тогда жмите "РАБОТЫ"'
+            bot.send_message(message.chat.id, mess, parse_mode='html', reply_markup=markup)
         else:
             bot.send_message(message.chat.id, 'Цифрами пожалуйста', parse_mode='html')
             bot.register_next_step_handler(message, get_width)
     except Exception:
-            bot.reply_to(message, 'Длина должна быть в сантиметрах')
+            bot.reply_to(message, 'Ширина должна быть в сантиметрах')
             bot.register_next_step_handler(message, get_width)
-
 
 bot.polling(none_stop=True)
