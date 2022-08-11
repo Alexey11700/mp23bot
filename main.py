@@ -7,8 +7,6 @@ bot = telebot.TeleBot('5367324988:AAH-vbdXLimLjzt2r_QGpKTrpjr6AHhfZiA')
 mess_dlina = '<b>Ввведите пожалуйста длину рисунка в сантиметрах: пример "125"</b>'
 mess_shirina = '<b>Ввведите пожалуйста ширину рисунка в сантиметрах: \nпример "125"</b>'
 messno = '<b>Всего доброго! Если захотите сделать расчет, воспользуйтесь командой /start </b>'
-d1 = []
-d2 = []
 
 
 @bot.message_handler(commands=['start'])
@@ -23,14 +21,14 @@ def start(message):
 @bot.message_handler(content_types=['text'])
 def calculation(message):
     if message.text.lower() == "да":
-        connect = sqlite3.connect('area.db')
+        connect = sqlite3.connect('datab.db')
         cursor = connect.cursor()
-
         cursor.execute("""CREATE TABLE IF NOT EXISTS area(
-                        dann INTEGER
+                        razmer INTEGER
                     )""")
-
+        cursor.execute("DELETE FROM area")
         connect.commit()
+
         bot.send_message(message.chat.id, mess_dlina, parse_mode='html')
         bot.register_next_step_handler(message, get_length)
 
@@ -45,12 +43,13 @@ def get_length(message):
 
     try:
         length = message.text
+        d1 = []
         d1.append(length)
 
         if length.isdigit():
-            connect = sqlite3.connect('area.db')
+            connect = sqlite3.connect('datab.db')
             cursor = connect.cursor()
-            cursor.execute("INSERT INTO area(dann) VALUES(?);", d1)
+            cursor.execute("INSERT INTO area(razmer) VALUES(?);", d1)
             connect.commit()
             bot.send_message(message.chat.id, mess_shirina, parse_mode='html')
             bot.register_next_step_handler(message, get_width)
@@ -62,31 +61,25 @@ def get_length(message):
             bot.register_next_step_handler(message, get_length)
 
 
-def get_width(message):
+def get_width(message,):
 
     try:
         width = message.text
+        d2 = []
         d2.append(width)
-
         if width.isdigit():
-            connect = sqlite3.connect('area.db')
+            connect = sqlite3.connect('datab.db')
             cursor = connect.cursor()
-            cursor.execute("INSERT INTO area(dann) VALUES(?);", d2, )
+            cursor.execute("INSERT INTO area(razmer) VALUES(?);", d2)
+            res = cursor.execute("SELECT SUM(razmer) FROM area")
             connect.commit()
-
-            bot.send_message(message.chat.id, 'Ориентировочная цена вашего рисунка составляет ', parse_mode='html')
-
-            markup = types.InlineKeyboardMarkup(row_width=2)
-            bat1 = types.InlineKeyboardButton(text='ЗАЯВКА', url='https://magicprint23.ru/')
-            bat2 = types.InlineKeyboardButton(text='РАБОТЫ', url='http://www.instagram.com/magicprint23krd')
-            markup.add(bat1, bat2)
-            mess = f'Вау, цена очень даже привлекательная, согласны <b>{message.from_user.first_name} {message.from_user.last_name}?\n</b>Если хотите оставить заявку и обсудить детали с менеджером, то жмите "ЗАЯВКА".\nЕсли хотите посмотреть наши работы в instagram, тогда жмите "РАБОТЫ"'
-            bot.send_message(message.chat.id, mess, parse_mode='html', reply_markup=markup)
+            bot.send_message(message.chat.id, 'Результат равен ' +str(res), parse_mode='html')
         else:
             bot.send_message(message.chat.id, 'Цифрами пожалуйста', parse_mode='html')
             bot.register_next_step_handler(message, get_width)
     except Exception:
             bot.reply_to(message, 'Ширина должна быть в сантиметрах')
             bot.register_next_step_handler(message, get_width)
+
 
 bot.polling(none_stop=True)
