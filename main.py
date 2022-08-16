@@ -71,9 +71,10 @@ def get_width(message,):
             connect = sqlite3.connect('datab.db')
             cursor = connect.cursor()
             cursor.execute("INSERT INTO area(razmer) VALUES(?);", d2)
-            res = cursor.execute("SELECT SUM(razmer) FROM area")
+            cursor.execute("SELECT SUM(razmer)*3000 FROM area")
+            res1 = cursor.fetchone()
             connect.commit()
-            bot.send_message(message.chat.id, 'Результат равен ' +str(res), parse_mode='html')
+            bot.send_message(message.chat.id, 'Результат равен ' +str(res1), parse_mode='html')
         else:
             bot.send_message(message.chat.id, 'Цифрами пожалуйста', parse_mode='html')
             bot.register_next_step_handler(message, get_width)
