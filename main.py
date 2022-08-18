@@ -24,7 +24,8 @@ def calculation(message):
         connect = sqlite3.connect('datab.db')
         cursor = connect.cursor()
         cursor.execute("""CREATE TABLE IF NOT EXISTS area(
-                        razmer INTEGER
+                        dlina1 INTEGER,
+                        shirina1 INTEGER 
                     )""")
         cursor.execute("DELETE FROM area")
         connect.commit()
@@ -49,7 +50,7 @@ def get_length(message):
         if length.isdigit():
             connect = sqlite3.connect('datab.db')
             cursor = connect.cursor()
-            cursor.execute("INSERT INTO area(razmer) VALUES(?);", d1)
+            cursor.execute("INSERT INTO area(dlina1) VALUES(?);", d1)
             connect.commit()
             bot.send_message(message.chat.id, mess_shirina, parse_mode='html')
             bot.register_next_step_handler(message, get_width)
@@ -70,11 +71,13 @@ def get_width(message,):
         if width.isdigit():
             connect = sqlite3.connect('datab.db')
             cursor = connect.cursor()
-            cursor.execute("INSERT INTO area(razmer) VALUES(?);", d2)
-            cursor.execute("SELECT SUM(razmer)*3000 FROM area")
-            res1 = cursor.fetchone()
+            cursor.execute("INSERT INTO area(shirina1) VALUES(?);", d2)
+            #cursor.execute("SELECT dlina1 FROM area WHERE dlina1 IS NOT NULL")
+            #cursor.execute("SELECT shirina1 FROM area WHERE shirina1 IS NOT NULL")
+            rez = cursor.execute("SELECT (dlina1) + (shirina1) FROM area")
+            result = cursor.fetchall()
             connect.commit()
-            bot.send_message(message.chat.id, 'Результат равен ' +str(res1), parse_mode='html')
+            bot.send_message(message.chat.id, 'Результат равен ' + str(result), parse_mode='html')
         else:
             bot.send_message(message.chat.id, 'Цифрами пожалуйста', parse_mode='html')
             bot.register_next_step_handler(message, get_width)
