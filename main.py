@@ -24,6 +24,7 @@ def calculation(message):
         connect = sqlite3.connect('datab.db')
         cursor = connect.cursor()
         cursor.execute("""CREATE TABLE IF NOT EXISTS area(
+                        id INTEGER PRIMARY KEY AUTOINCREMENT, 
                         dlina1 INTEGER,
                         shirina1 INTEGER 
                     )""")
@@ -71,10 +72,10 @@ def get_width(message,):
         if width.isdigit():
             connect = sqlite3.connect('datab.db')
             cursor = connect.cursor()
-            cursor.execute("INSERT INTO area(shirina1) VALUES(?);", d2)
+            cursor.execute("UPDATE area SET shirina1 = 6 WHERE id = 1")
             #cursor.execute("SELECT dlina1 FROM area WHERE dlina1 IS NOT NULL")
             #cursor.execute("SELECT shirina1 FROM area WHERE shirina1 IS NOT NULL")
-            rez = cursor.execute("SELECT (dlina1) + (shirina1) FROM area")
+            rez = cursor.execute("SELECT (dlina1) * (shirina1) FROM area")
             result = cursor.fetchall()
             connect.commit()
             bot.send_message(message.chat.id, 'Результат равен ' + str(result), parse_mode='html')
