@@ -1,9 +1,8 @@
-
 import sqlite3
 import telebot
 from telebot import types
 
-bot = telebot.TeleBot('5367324988:AAH-vbdXLimLjzt2r_QGpKTrpjr6AHhfZiA')
+bot = telebot.TeleBot('')
 mess_dlina = '<b>Ввведите пожалуйста длину рисунка в сантиметрах: пример "125"</b>'
 mess_shirina = '<b>Ввведите пожалуйста ширину рисунка в сантиметрах: \nпример "125"</b>'
 messno = '<b>Всего доброго! Если захотите сделать расчет, воспользуйтесь командой /start </b>'
@@ -72,13 +71,23 @@ def get_width(message,):
         if width.isdigit():
             connect = sqlite3.connect('datab.db')
             cursor = connect.cursor()
-            cursor.execute("UPDATE area SET shirina1 = 6 WHERE id = 1")
-            #cursor.execute("SELECT dlina1 FROM area WHERE dlina1 IS NOT NULL")
-            #cursor.execute("SELECT shirina1 FROM area WHERE shirina1 IS NOT NULL")
-            rez = cursor.execute("SELECT (dlina1) * (shirina1) FROM area")
+            cursor.execute("UPDATE area SET shirina1 = ?", d2)
+            cursor.execute("SELECT (((dlina1) * (shirina1))*30)/100 FROM area")
             result = cursor.fetchall()
+            rez = ([x[0] for x in result])
+            final = (rez[0])
             connect.commit()
-            bot.send_message(message.chat.id, 'Результат равен ' + str(result), parse_mode='html')
+
+            bot.send_message(message.chat.id, 'Ориентировочная цена вашего рисунка составляет: \n' +  str(final)  + ' рублей', parse_mode='html')
+
+            markup = types.InlineKeyboardMarkup(row_width=2)
+            bat1 = types.InlineKeyboardButton(text='ЗАЯВКА', url='https://magicprint23.ru/')
+            bat2 = types.InlineKeyboardButton(text='РАБОТЫ', url='http://www.instagram.com/magicprint23krd')
+            markup.add(bat1, bat2)
+            mess = f'Вау, цена очень даже привлекательная, согласны <b>{message.from_user.first_name} {message.from_user.last_name}?\n</b>Если хотите оставить заявку и обсудить детали с менеджером, то жмите "ЗАЯВКА".\nЕсли хотите посмотреть наши работы в instagram, тогда жмите "РАБОТЫ"'
+            bot.send_message(message.chat.id, mess, parse_mode='html', reply_markup=markup)
+
+
         else:
             bot.send_message(message.chat.id, 'Цифрами пожалуйста', parse_mode='html')
             bot.register_next_step_handler(message, get_width)
